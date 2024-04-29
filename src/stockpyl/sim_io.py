@@ -77,9 +77,9 @@ from stockpyl.demand_source import DemandSource
 from stockpyl.disruption_process import DisruptionProcess
 
 
-def write_results(network, num_periods, periods_to_print=None, columns_to_print=None,
-				  write_csv=False, csv_filename=None):
-	"""Write the results of a simulation to the console, as well as to a CSV file if requested.
+def write_results(network, num_periods, periods_to_print=None, columns_to_print=None, 
+					write_txt=False, txt_filename=None, write_csv=False, csv_filename=None):
+	"""Write the results of a simulation to the console, as well as to a TXT and/or CSV file if requested.
 
 	Parameters
 	----------
@@ -101,6 +101,11 @@ def write_results(network, num_periods, periods_to_print=None, columns_to_print=
 			* ``'all'``: prints all columns (equivalent to setting ``columns_to_print=None``)
 
 		Unrecognized strings are ignored. If omitted, will print all columns (the default). 
+	write_txt : bool, optional
+		``True`` to write the output that is printed to the terminal to TXT file also, ``False`` otherwise. 
+		Optional; default = ``False``.
+	txt_filename : str, optional
+		Filename to use for TXT file. Required if ``write_txt`` = ``True``; ignored otherwise.
 	write_csv : bool, optional
 		``True`` to write to CSV file, ``False`` otherwise. Optional; default = ``False``.
 	csv_filename : str, optional
@@ -112,30 +117,8 @@ def write_results(network, num_periods, periods_to_print=None, columns_to_print=
 
 	"""
 
-	# Build list of results strings
+	# Build lists of results strings.
 	results = []
-
-#	temp = ["Avg"]
-# 	for node in network.nodes:
-# 		temp = temp + ["|", #np.average([node.state_vars[t].inventory_level for t in range(num_periods)]),
-# 					   node.get_attribute_total('inbound_order', None) / num_periods,
-# 					   None,
-# 					   None, 
-# 					   node.get_attribute_total('on_order_by_predecessor', None) / num_periods,
-# 					   None,
-# 					   None, None,
-# 					   node.get_attribute_total('outbound_shipment', None) / num_periods,
-# 					   np.average([node.state_vars[t].demand_met_from_stock for t in range(num_periods)]),
-# 					   np.average([node.state_vars[t].fill_rate for t in range(num_periods)]),
-# 					   np.average([node.state_vars[t].inventory_level for t in range(num_periods)]),
-# #					   node.get_attribute_total('backorders_by_successor', None) / num_periods,
-# 					   np.average([node.state_vars[t].holding_cost_incurred for t in range(num_periods)]),
-# 					   np.average([node.state_vars[t].stockout_cost_incurred for t in range(num_periods)]),
-# 					   np.average([node.state_vars[t].in_transit_holding_cost_incurred for t in range(
-# 						   num_periods)]),
-# 					   np.average([node.state_vars[t].total_cost_incurred for t in range(num_periods)])]
-#	results.append(temp)
-#	results.append([""])
 
 	# Determine periods to print.
 	if periods_to_print is None:
@@ -177,7 +160,7 @@ def write_results(network, num_periods, periods_to_print=None, columns_to_print=
 			ISPL_temp = sort_dict_by_keys(node.state_vars[t].inbound_shipment_pipeline)
 			ISPL = [x[1:] for x in ISPL_temp]
 			# Build row.
-			temp += ['']
+			temp += ['|']
 			if 'DISR'	in cols_to_print: temp += [node.state_vars[t].disrupted]
 			if 'IO'		in cols_to_print: temp += sort_dict_by_keys(node.state_vars[t].inbound_order) 
 			if 'IOPL'	in cols_to_print: temp += IOPL
@@ -206,7 +189,7 @@ def write_results(network, num_periods, periods_to_print=None, columns_to_print=
 	headers = ["t"]
 	for ind in sorted_nodes:
 		node = network.get_node_from_index(ind)
-		headers = headers + ["i={:d}".format(node.index)] 
+		headers = headers + ["| i={:d}".format(node.index)] 
 		if 'DISR'	in cols_to_print: headers += ['DISR']
 		if 'IO'		in cols_to_print: headers += _dict_to_header_list(node.state_vars[0].inbound_order, "IO")
 		if 'IOPL'	in cols_to_print: headers += _dict_to_header_list(node.state_vars[0].inbound_order_pipeline, "IOPL")
@@ -231,11 +214,25 @@ def write_results(network, num_periods, periods_to_print=None, columns_to_print=
 	# Average row.
 	averages = ["t"]
 
-	# Write results to screen
+	# Write results to screen.
 	print(tabulate(results, headers=headers))
 
-	# CSV output
+	# Write results to TXT file, if requested.
+	if write_txt:
+		with open(txt_filename, 'w') as txtFile:
+			txtFile.write(tabulate(results, headers=headers))
+
+	# Write results to CSV file, if requested.
 	if write_csv:
+		# Remove vertical bars -- these look good in the txt but not the csv.
+		for i in range(len(headers)):
+			headers[i] = headers[i].replace('| ', '') # has no effect if '| ' is not in the entry
+		for r in results:
+			for i in range(len(r)):
+				if r[i] == '|':
+					r[i] = ''
+
+		# Write file.
 		with open(csv_filename, 'w') as csvFile:
 			writer = csv.writer(csvFile)
 			writer.writerow(headers)
