@@ -21,7 +21,7 @@ for the GSM instance.
 
 .. note:: |fosct_notation|
 
-.. admonition:: See Also
+.. seealso::
 
 	For an overview of multi-echelon inventory optimization in |sp|,
 	see the :ref:`tutorial page for multi-echelon inventory optimization<tutorial_meio_page>`.
@@ -62,6 +62,8 @@ def optimize_committed_service_times(tree):
 	Output parameters are expressed using the original labeling of tree, even if the nodes
 	are relabeled internally.
 
+	Demands are assumed to be normally distributed. 
+
 	Parameters
 	----------
 	tree : |class_network|
@@ -73,6 +75,11 @@ def optimize_committed_service_times(tree):
 		Dict of optimal CSTs, with node indices as keys and CSTs as values.
 	opt_cost : float
 		Optimal expected cost of system.
+	
+	Raises
+	------
+	ValueError
+		If any sink node (node with no successors) has no demand mean or standard devation provided.
 
 
 	**Example** (Example 6.5):
@@ -100,6 +107,13 @@ def optimize_committed_service_times(tree):
 	S. C. Graves and S. P. Willems. Erratum: Optimizing strategic safety stock placement in supply chains. 
 	*Manufacturing and Service Operations Management*, 5(2):176-177, 2003.
 	"""
+ 
+	# Validate parameters.
+	for n in tree.sink_nodes:
+		if n.demand_source.mean is None:
+			raise ValueError(f'All sink nodes must have demand_source.mean (node {n.index} does not).')
+		if n.demand_source.standard_deviation is None:
+			raise ValueError(f'All sink nodes must have demand_source.standard_deviation (node {n.index} does not).')
 
 	# Preprocess tree.
 	tree = preprocess_tree(tree)
@@ -161,7 +175,7 @@ def _cst_dp_tree(tree):
 	for k_index in range(min_k_index, max_k_index + 1):
 
 		# Get shortcuts to some parameters (for convenience).
-		k = tree.get_node_from_index(k_index)
+		k = tree.nodes_by_index[k_index]
 		max_replen_time = k.max_replenishment_time
 		proc_time = k.processing_time
 
@@ -211,7 +225,7 @@ def _cst_dp_tree(tree):
 					best_cst_adjacent[k_index][max_replen_time - proc_time]
 
 	# Determine best value of SI for final stage.
-	max_k_node = tree.get_node_from_index(max_k_index)
+	max_k_node = tree.nodes_by_index[max_k_index]
 	SI_dict = {SI: theta_in[max_k_index][SI] for SI in
 			   range(max_k_node.max_replenishment_time -
 					 max_k_node.processing_time + 1)} # smaller range of SI
@@ -231,7 +245,7 @@ def _cst_dp_tree(tree):
 	for k_index in range(max_k_index, min_k_index-1, -1):
 
 		# Get node k.
-		k = tree.get_node_from_index(k_index)
+		k = tree.nodes_by_index[k_index]
 
 		# Get p(k_index), and determine whether p(k_index) and p(p(k_index)) are upstream or
 		# downstream (for convenience).
@@ -239,7 +253,7 @@ def _cst_dp_tree(tree):
 			pk = k.larger_adjacent_node
 			pk_is_downstream = k.larger_adjacent_node_is_downstream
 			if pk < max_k_index:
-				ppk_is_downstream = tree.get_node_from_index(pk).larger_adjacent_node_is_downstream
+				ppk_is_downstream = tree.nodes_by_index[pk].larger_adjacent_node_is_downstream
 
 		# Where is p(k_index)?
 		if k_index == max_k_index:
@@ -332,7 +346,7 @@ def _calculate_theta_out(tree, k_index, S, theta_in_partial, theta_out_partial):
 	"""
 
 	# Get node k_index, for convenience.
-	k = tree.get_node_from_index(k_index)
+	k = tree.nodes_by_index[k_index]
 
 	# Initialize min_c.
 	min_c = float('inf')
@@ -430,7 +444,7 @@ def _calculate_theta_in(tree, k_index, SI, theta_in_partial, theta_out_partial):
 	"""
 
 	# Get node k_index, for convenience.
-	k = tree.get_node_from_index(k_index)
+	k = tree.nodes_by_index[k_index]
 
 	# Initialize min_c.
 	min_c = float('inf')
@@ -518,7 +532,7 @@ def _calculate_c(tree, k_index, S, SI, theta_in_partial, theta_out_partial):
 	"""
 
 	# Get node k, for convenience.
-	k = tree.get_node_from_index(k_index)
+	k = tree.nodes_by_index[k_index]
 
 	# Initialize output dicts.
 	best_upstream_S = {}
@@ -707,7 +721,7 @@ def relabel_nodes(tree, start_index=0, force_relabel=False):
 	# Fill attributes of relabeled tree.
 	larger_adjacent, downstream = _find_larger_adjacent_nodes(relabeled_tree)
 	for k in tree.nodes:
-		relabeled_node = relabeled_tree.get_node_from_index(new_labels[k.index])
+		relabeled_node = relabeled_tree.nodes_by_index[new_labels[k.index]]
 		relabeled_node.original_label = k.index
 		if new_labels[k.index] < np.max(list(new_labels.values())):
 			relabeled_node.larger_adjacent_node = larger_adjacent[relabeled_node.index]
@@ -752,8 +766,8 @@ def is_correctly_labeled(tree):
 			for k in tree.nodes:
 				if k.index < np.max(ind):
 					greater_indexed_neighbors = \
-						{i for i in k.predecessors() if i.index > k.index}.union(
-							{i for i in k.successors() if i.index > k.index}
+						{i_ind for i_ind in k.predecessor_indices() if i_ind > k.index}.union(
+							{i_ind for i_ind in k.successor_indices() if i_ind > k.index}
 						)
 					if len(greater_indexed_neighbors) != 1:
 						is_correct = False
@@ -886,6 +900,8 @@ def _net_demand(tree):
 	# Make temp copy of tree.
 	temp_tree = copy.deepcopy(tree)
 
+# TODO: add check that the node list gets smaller each iteration -- otherwise there's a bug, but finding it can be hard because of the infinite loop
+
 	# Loop through temp_tree. At each iteration, handle leaf nodes (nodes with
 	# no _successors), adding their net_means and net_variances to those of their
 	# _predecessors. Then remove the leaf nodes and iterate.
@@ -970,7 +986,7 @@ def gsm_to_ssm(tree, p=None):
 		SSM_tree.add_node(SupplyChainNode(n.index, name=n.name, network=SSM_tree,
 			shipment_lead_time=n.processing_time+n.external_inbound_cst,
 			echelon_holding_cost=n.local_holding_cost-upstream_h))
-		SSM_node = SSM_tree.get_node_from_index(n.index)
+		SSM_node = SSM_tree.nodes_by_index[n.index]
 		SSM_node.demand_source = copy.deepcopy(n.demand_source)
 		if p is not None:
 			if n.demand_source is not None:

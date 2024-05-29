@@ -44,6 +44,8 @@ import inspect
 
 from stockpyl.supply_chain_network import *
 from stockpyl.supply_chain_node import *
+from stockpyl.helpers import is_set, is_dict, serialize_set, deserialize_set
+
 
 def load_instance(instance_name, filepath=None, ignore_state_vars=True):
 	"""Load an instance from a JSON file. 
@@ -93,7 +95,7 @@ def load_instance(instance_name, filepath=None, ignore_state_vars=True):
 
 	# Load data from JSON.
 	with open(new_path) as f:
-		json_contents = json.load(f)
+		json_contents = json.load(f, object_hook=deserialize_set)
 
 	# Look for instance. (https://stackoverflow.com/a/8653568/3453768)
 	instance_index = next((i for i, item in enumerate(json_contents["instances"]) \
@@ -117,7 +119,21 @@ def load_instance(instance_name, filepath=None, ignore_state_vars=True):
 			for n in instance.nodes:
 				n.state_vars = []
 
-		return instance
+		# Ensure that all nodes have dummy product fields set correctly. This is to maintain backward
+		# compatitbility with earlier versions, which did not save product info (including dummy products).
+		for n in instance.nodes:
+			# Does node already have dummy product?
+			if n._dummy_product is None:
+				# Add a dummy product, whether or not it needs one (mainly to assign the index).
+				n._add_dummy_product()
+			# Assign external supplier dummy product.
+			n._external_supplier_dummy_product = SupplyChainProduct(n._dummy_product.index - 1, is_dummy=True)
+			# Does node have "real" products? (This will probably never happen, since products were introduced
+			# in the same version as dummy products--so if a node has products, it probably has dummy products
+			# correctly handled already.)
+			if len(n.products_by_index) > 1:
+				# Remove dummy product.
+				n._remove_dummy_product()
 	else:
 		# As a dict. Leave in place. But:
 		# If the instance contains any dicts with integer keys, they will have
@@ -125,11 +141,11 @@ def load_instance(instance_name, filepath=None, ignore_state_vars=True):
 		# Currently, only demand_pmf has this issue.
 		if 'demand_pmf' in instance.keys():
 			instance['demand_pmf'] = {int(k): v for k, v in instance['demand_pmf'].items()}
-
-		return instance
+ 
+	return instance
 
 def save_instance(instance_name, instance_data, instance_description='', filepath=None, 
-	replace=True, create_if_none=True, omit_state_vars=True):
+	replace=True, create_if_none=True, delete_if_exists=False, omit_state_vars=True):
 	"""Save an instance to a JSON file. 
 	
 	Parameters
@@ -151,6 +167,9 @@ def save_instance(instance_name, instance_data, instance_description='', filepat
 	create_if_none : bool, optional
 		If the file does not already exist, the function will create a new file if ``True``; 
 		otherwise, it will not do anything and issue a warning.
+	delete_if_exists : bool, optional
+		If the file already exists, the function will delete it first if ``True``; 
+		otherwise, it will modify the existing file.
 	omit_state_vars : bool, optional
 		If ``True``, the function will not save state variables as part of the nodes,
 		even if they are present in the instance.
@@ -162,9 +181,17 @@ def save_instance(instance_name, instance_data, instance_description='', filepat
 
 	# Does JSON file exist?
 	if os.path.exists(filepath):
-		# Load data from JSON.
-		with open(filepath) as f:
-			json_contents = json.load(f)
+		if delete_if_exists:
+			os.remove(filepath)
+			json_contents = {
+				"_id": "",
+				"instances": [],
+				"last_updated": ""
+			}
+		else:
+			# Load data from JSON.
+			with open(filepath) as f:
+				json_contents = json.load(f)
 	else:
 		# Should we create it?
 		if create_if_none:
@@ -227,11 +254,10 @@ def save_instance(instance_name, instance_data, instance_description='', filepat
 	
 	# Write all instances to JSON.
 	with open(filepath, 'w') as f:
-		json.dump(json_contents, f)
+		json.dump(json_contents, f, default=serialize_set)
 
 	# Close file.
 	f.close()
-
 
 
 def _stockpyl_instances_json_path():

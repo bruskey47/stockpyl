@@ -63,11 +63,11 @@ class TestRelabelNodes(unittest.TestCase):
 		correct_G.add_edges_from_list([(2, 1), (2, 3), (3, 6), (4, 6), (6, 5), (6, 7)])
 
 		for n in new_G.nodes:
-			self.assertSetEqual(set(n.predecessor_indices()), set(correct_G.get_node_from_index(n.index).predecessor_indices()))
-			self.assertSetEqual(set(n.successor_indices()), set(correct_G.get_node_from_index(n.index).successor_indices()))
-			self.assertEqual(n.original_label, correct_G.get_node_from_index(n.index).original_label)
-			self.assertEqual(n.larger_adjacent_node, correct_G.get_node_from_index(n.index).larger_adjacent_node)
-			self.assertEqual(n.larger_adjacent_node_is_downstream, correct_G.get_node_from_index(n.index).larger_adjacent_node_is_downstream)
+			self.assertSetEqual(set(n.predecessor_indices()), set(correct_G.nodes_by_index[n.index].predecessor_indices()))
+			self.assertSetEqual(set(n.successor_indices()), set(correct_G.nodes_by_index[n.index].successor_indices()))
+			self.assertEqual(n.original_label, correct_G.nodes_by_index[n.index].original_label)
+			self.assertEqual(n.larger_adjacent_node, correct_G.nodes_by_index[n.index].larger_adjacent_node)
+			self.assertEqual(n.larger_adjacent_node_is_downstream, correct_G.nodes_by_index[n.index].larger_adjacent_node_is_downstream)
 
 	def test_figure_6_12_already_correct(self):
 		"""Test that relabel_nodes() correctly relabels network
@@ -94,11 +94,11 @@ class TestRelabelNodes(unittest.TestCase):
 		correct_G.add_edges_from_list([(2, 1), (2, 3), (3, 6), (4, 6), (6, 5), (6, 7)])
 
 		for n in new_G.nodes:
-			self.assertSetEqual(set(n.predecessor_indices()), set(correct_G.get_node_from_index(n.index).predecessor_indices()))
-			self.assertSetEqual(set(n.successor_indices()), set(correct_G.get_node_from_index(n.index).successor_indices()))
-			self.assertEqual(n.original_label, correct_G.get_node_from_index(n.index).original_label)
-			self.assertEqual(n.larger_adjacent_node, correct_G.get_node_from_index(n.index).larger_adjacent_node)
-			self.assertEqual(n.larger_adjacent_node_is_downstream, correct_G.get_node_from_index(n.index).larger_adjacent_node_is_downstream)
+			self.assertSetEqual(set(n.predecessor_indices()), set(correct_G.nodes_by_index[n.index].predecessor_indices()))
+			self.assertSetEqual(set(n.successor_indices()), set(correct_G.nodes_by_index[n.index].successor_indices()))
+			self.assertEqual(n.original_label, correct_G.nodes_by_index[n.index].original_label)
+			self.assertEqual(n.larger_adjacent_node, correct_G.nodes_by_index[n.index].larger_adjacent_node)
+			self.assertEqual(n.larger_adjacent_node_is_downstream, correct_G.nodes_by_index[n.index].larger_adjacent_node_is_downstream)
 
 	def test_example_6_5(self):
 		"""Test that relabel_nodes() correctly relabels network in Example 6.13.
@@ -117,11 +117,11 @@ class TestRelabelNodes(unittest.TestCase):
 		correct_G.add_edges_from_list([(1, 3), (3, 2), (3, 4)])
 
 		for n in new_G.nodes:
-			self.assertSetEqual(set(n.predecessor_indices()), set(correct_G.get_node_from_index(n.index).predecessor_indices()))
-			self.assertSetEqual(set(n.successor_indices()), set(correct_G.get_node_from_index(n.index).successor_indices()))
-			self.assertEqual(n.original_label, correct_G.get_node_from_index(n.index).original_label)
-			self.assertEqual(n.larger_adjacent_node, correct_G.get_node_from_index(n.index).larger_adjacent_node)
-			self.assertEqual(n.larger_adjacent_node_is_downstream, correct_G.get_node_from_index(n.index).larger_adjacent_node_is_downstream)
+			self.assertSetEqual(set(n.predecessor_indices()), set(correct_G.nodes_by_index[n.index].predecessor_indices()))
+			self.assertSetEqual(set(n.successor_indices()), set(correct_G.nodes_by_index[n.index].successor_indices()))
+			self.assertEqual(n.original_label, correct_G.nodes_by_index[n.index].original_label)
+			self.assertEqual(n.larger_adjacent_node, correct_G.nodes_by_index[n.index].larger_adjacent_node)
+			self.assertEqual(n.larger_adjacent_node_is_downstream, correct_G.nodes_by_index[n.index].larger_adjacent_node_is_downstream)
 
 	def test_figure_6_14(self):
 		"""Test that relabel_nodes() correctly relabels network in Figure 6.14.
@@ -140,17 +140,17 @@ class TestRelabelNodes(unittest.TestCase):
 		correct_downstream[10] = None
 		correct_G.reindex_nodes(correct_labels)
 		for n in orig_G.nodes:
-			correct_node = correct_G.get_node_from_index(correct_labels[n.index])
+			correct_node = correct_G.nodes_by_index[correct_labels[n.index]]
 			correct_node.original_label = n.index
 			correct_node.larger_adjacent_node = correct_larger_adjacent[correct_node.index]
 			correct_node.larger_adjacent_node_is_downstream = correct_downstream[correct_node.index]
 
 		for n in new_G.nodes:
-			self.assertSetEqual(set(n.predecessor_indices()), set(correct_G.get_node_from_index(n.index).predecessor_indices()))
-			self.assertSetEqual(set(n.successor_indices()), set(correct_G.get_node_from_index(n.index).successor_indices()))
-			self.assertEqual(n.original_label, correct_G.get_node_from_index(n.index).original_label)
-			self.assertEqual(n.larger_adjacent_node, correct_G.get_node_from_index(n.index).larger_adjacent_node)
-			self.assertEqual(n.larger_adjacent_node_is_downstream, correct_G.get_node_from_index(n.index).larger_adjacent_node_is_downstream)
+			self.assertSetEqual(set(n.predecessor_indices()), set(correct_G.nodes_by_index[n.index].predecessor_indices()))
+			self.assertSetEqual(set(n.successor_indices()), set(correct_G.nodes_by_index[n.index].successor_indices()))
+			self.assertEqual(n.original_label, correct_G.nodes_by_index[n.index].original_label)
+			self.assertEqual(n.larger_adjacent_node, correct_G.nodes_by_index[n.index].larger_adjacent_node)
+			self.assertEqual(n.larger_adjacent_node_is_downstream, correct_G.nodes_by_index[n.index].larger_adjacent_node_is_downstream)
 
 	def test_figure_6_14_alt_indices(self):
 		"""Test that relabel_nodes() correctly relabels network in Figure 6.14 when
@@ -173,17 +173,17 @@ class TestRelabelNodes(unittest.TestCase):
 		correct_downstream[10] = None
 		correct_G.reindex_nodes(correct_labels)
 		for n in orig_G.nodes:
-			correct_node = correct_G.get_node_from_index(correct_labels[n.index])
+			correct_node = correct_G.nodes_by_index[correct_labels[n.index]]
 			correct_node.original_label = n.index
 			correct_node.larger_adjacent_node = correct_larger_adjacent[correct_node.index]
 			correct_node.larger_adjacent_node_is_downstream = correct_downstream[correct_node.index]
 
 		for n in new_G.nodes:
-			self.assertSetEqual(set(n.predecessor_indices()), set(correct_G.get_node_from_index(n.index).predecessor_indices()))
-			self.assertSetEqual(set(n.successor_indices()), set(correct_G.get_node_from_index(n.index).successor_indices()))
-			self.assertEqual(n.original_label, correct_G.get_node_from_index(n.index).original_label)
-			self.assertEqual(n.larger_adjacent_node, correct_G.get_node_from_index(n.index).larger_adjacent_node)
-			self.assertEqual(n.larger_adjacent_node_is_downstream, correct_G.get_node_from_index(n.index).larger_adjacent_node_is_downstream)
+			self.assertSetEqual(set(n.predecessor_indices()), set(correct_G.nodes_by_index[n.index].predecessor_indices()))
+			self.assertSetEqual(set(n.successor_indices()), set(correct_G.nodes_by_index[n.index].successor_indices()))
+			self.assertEqual(n.original_label, correct_G.nodes_by_index[n.index].original_label)
+			self.assertEqual(n.larger_adjacent_node, correct_G.nodes_by_index[n.index].larger_adjacent_node)
+			self.assertEqual(n.larger_adjacent_node_is_downstream, correct_G.nodes_by_index[n.index].larger_adjacent_node_is_downstream)
 
 	def test_problem_6_9(self):
 		"""Test that relabel_nodes() correctly relabels network in Problem 6.9.
@@ -201,10 +201,23 @@ class TestRelabelNodes(unittest.TestCase):
 		correct_downstream = {0: False, 1: False, 2: True, 3: True, 4: False, 5: None}
 		correct_G.reindex_nodes(correct_labels)
 		for n in orig_G.nodes:
-			correct_node = correct_G.get_node_from_index(correct_labels[n.index])
+			correct_node = correct_G.nodes_by_index[correct_labels[n.index]]
 			correct_node.original_label = n.index
 			correct_node.larger_adjacent_node = correct_larger_adjacent[correct_node.index]
 			correct_node.larger_adjacent_node_is_downstream = correct_downstream[correct_node.index]
+
+	def test_bad_index(self):
+		"""Test that reindex_nodes() correctly raises an exception if an index is not a positive integer.
+		"""
+
+		print_status('TestRelabelNodes', 'test_bad_index()')
+
+		orig_G = load_instance("figure_6_14")
+
+		with self.assertRaises(ValueError):
+			orig_G.reindex_nodes({1: 4.5, 2: 3, 3: 9, 4: 1, 5: 10, 6: 8, 7: 7, 8: 2, 9: 5, 10: 6})
+			orig_G.reindex_nodes({1: -4, 2: 3, 3: 9, 4: 1, 5: 10, 6: 8, 7: 7, 8: 2, 9: 5, 10: 6})
+
 
 
 class TestIsCorrectlyLabeled(unittest.TestCase):
@@ -230,20 +243,6 @@ class TestIsCorrectlyLabeled(unittest.TestCase):
 		is_correct = gsm_tree.is_correctly_labeled(new_G)
 
 		self.assertEqual(is_correct, True)
-
-	def test_noninteger(self):
-		"""Test that is_correctly_labeled() works for if network has a
-		non-integer label.
-		"""
-
-		print_status('TestFindLargerAdjacentNodes', 'test_noninteger()')
-
-		new_G = gsm_tree.relabel_nodes(load_instance("figure_6_12"), start_index=1)
-		new_G.reindex_nodes({1: 1.3, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7})
-
-		is_correct = gsm_tree.is_correctly_labeled(new_G)
-
-		self.assertEqual(is_correct, False)
 
 	def test_nonconsecutive(self):
 		"""Test that is_correctly_labeled() works for if network labels are
@@ -576,8 +575,7 @@ class TestGSMToSSM(unittest.TestCase):
 		correct_SSM_tree.add_edge(3, 2)
 		correct_SSM_tree.add_edge(3, 4)
 
-		trees_equal = SSM_tree.deep_equal_to(correct_SSM_tree)
-		self.assertEqual(trees_equal, True)
+		self.assertTrue(SSM_tree.deep_equal_to(correct_SSM_tree))
 
 	def test_figure_6_14(self):
 		"""Test that GSM_to_SSM() works for network in Figure 6.14.
@@ -603,8 +601,7 @@ class TestGSMToSSM(unittest.TestCase):
 			demand_source=DemandSource(type='N', mean=0, standard_deviation=10)))
 		correct_SSM_tree.add_edges_from_list([(1, 2), (2, 3), (3, 5), (4, 5), (5, 6), (7, 10), (6, 10), (8, 10), (9, 10)])
 
-		trees_equal = SSM_tree.deep_equal_to(correct_SSM_tree)
-		self.assertEqual(trees_equal, True)
+		self.assertTrue(SSM_tree.deep_equal_to(correct_SSM_tree))
 
 	def test_problem_6_9(self):
 		"""Test that GSM_to_SSM() works for network in Problem 6.9.
@@ -625,8 +622,7 @@ class TestGSMToSSM(unittest.TestCase):
 		correct_SSM_tree.add_node(SupplyChainNode(6, shipment_lead_time=2, echelon_holding_cost=7.5 * 0.2 / 365))
 		correct_SSM_tree.add_edges_from_list([(6, 5), (5, 3), (4, 3), (3, 1), (3, 2)])
 
-		trees_equal = SSM_tree.deep_equal_to(correct_SSM_tree)
-		self.assertEqual(trees_equal, True)
+		self.assertTrue(SSM_tree.deep_equal_to(correct_SSM_tree))
 
 
 class TestPreprocessTree(unittest.TestCase):
@@ -713,8 +709,7 @@ class TestPreprocessTree(unittest.TestCase):
 		)
 		correct_tree.add_successor(node3, node4)
 
-		trees_equal = new_tree.deep_equal_to(correct_tree)
-		self.assertTrue(trees_equal)
+		self.assertTrue(new_tree.deep_equal_to(correct_tree))
 
 	def test_figure_6_14(self):
 		"""Test that preprocess_tree() works for network in Figure 6.14.
@@ -840,8 +835,7 @@ class TestPreprocessTree(unittest.TestCase):
 							max_replenishment_time=14))
 		correct_tree.add_edges_from_list([(1, 2), (2, 3), (3, 5), (4, 5), (5, 6), (6, 10), (7, 10), (8, 10), (9, 10)])
 
-		trees_equal = new_tree.deep_equal_to(correct_tree)
-		self.assertEqual(trees_equal, True)
+		self.assertTrue(new_tree.deep_equal_to(correct_tree))
 
 	def test_problem_6_7(self):
 		"""Test that preprocess_tree() works for network in Problem 6.7.
@@ -885,8 +879,7 @@ class TestPreprocessTree(unittest.TestCase):
 							max_replenishment_time=5))
 		correct_tree.add_edges_from_list([(2, 1), (3, 2)])
 
-		trees_equal = new_tree.deep_equal_to(correct_tree)
-		self.assertTrue(trees_equal)
+		self.assertTrue(new_tree.deep_equal_to(correct_tree))
 
 	def test_problem_6_9(self):
 		"""Test that preprocess_tree() works for network in Problem 6.9.
@@ -974,8 +967,7 @@ class TestPreprocessTree(unittest.TestCase):
 							max_replenishment_time=2))
 		correct_tree.add_edges_from_list([(6, 5), (4, 3), (5, 3), (3, 1), (3, 2)])
 
-		trees_equal = new_tree.deep_equal_to(correct_tree)
-		self.assertTrue(trees_equal)
+		self.assertTrue(new_tree.deep_equal_to(correct_tree))
 
 
 class TestCalculateC(unittest.TestCase):
@@ -1800,7 +1792,7 @@ class TestOptimizeCommittedServiceTimes(unittest.TestCase):
 		print_status('TestOptimizeCommittedServiceTimes', 'test_figure_6_14_s5')
 
 		tree = copy.deepcopy(load_instance("figure_6_14"))
-		tree.get_node_from_index(10).external_outbound_cst = 5
+		tree.nodes_by_index[10].external_outbound_cst = 5
 
 		opt_cst, opt_cost = \
 			gsm_tree.optimize_committed_service_times(tree)
@@ -1825,7 +1817,7 @@ class TestOptimizeCommittedServiceTimes(unittest.TestCase):
 		print_status('TestOptimizeCommittedServiceTimes', 'test_figure_6_14_s8')
 
 		tree = copy.deepcopy(load_instance("figure_6_14"))
-		tree.get_node_from_index(10).external_outbound_cst = 8
+		tree.nodes_by_index[10].external_outbound_cst = 8
 
 		opt_cst, opt_cost = \
 			gsm_tree.optimize_committed_service_times(tree)
@@ -1850,7 +1842,7 @@ class TestOptimizeCommittedServiceTimes(unittest.TestCase):
 		print_status('TestOptimizeCommittedServiceTimes', 'test_figure_6_14_s12')
 
 		tree = copy.deepcopy(load_instance("figure_6_14"))
-		tree.get_node_from_index(10).external_outbound_cst = 12
+		tree.nodes_by_index[10].external_outbound_cst = 12
 
 		opt_cst, opt_cost = \
 			gsm_tree.optimize_committed_service_times(tree)
@@ -1903,8 +1895,8 @@ class TestOptimizeCommittedServiceTimes(unittest.TestCase):
 		print_status('TestOptimizeCommittedServiceTimes', 'test_problem_6_9_s1_0_s2_7')
 
 		tree = copy.deepcopy(load_instance("problem_6_9"))
-		tree.get_node_from_index(1).external_outbound_cst = 0
-		tree.get_node_from_index(2).external_outbound_cst = 7
+		tree.nodes_by_index[1].external_outbound_cst = 0
+		tree.nodes_by_index[2].external_outbound_cst = 7
 
 		opt_cst, opt_cost = \
 			gsm_tree.optimize_committed_service_times(tree)
@@ -1919,8 +1911,8 @@ class TestOptimizeCommittedServiceTimes(unittest.TestCase):
 		print_status('TestOptimizeCommittedServiceTimes', 'test_problem_6_9_s1_21_s2_5')
 
 		tree = copy.deepcopy(load_instance("problem_6_9"))
-		tree.get_node_from_index(1).external_outbound_cst = 21
-		tree.get_node_from_index(2).external_outbound_cst = 5
+		tree.nodes_by_index[1].external_outbound_cst = 21
+		tree.nodes_by_index[2].external_outbound_cst = 5
 
 		opt_cst, opt_cost = \
 			gsm_tree.optimize_committed_service_times(tree)
@@ -1948,3 +1940,18 @@ class TestOptimizeCommittedServiceTimes(unittest.TestCase):
 
 		self.assertAlmostEqual(opt_cost, 2)
 		self.assertDictEqual(opt_cst, {1: 0})
+
+	def test_bad_params(self):
+		"""Test that optimize_committed_service_times() correctly raises errors on bad parameters."""
+
+		print_status('TestOptimizeCommittedServiceTimes', 'test_bad_params')
+
+		tree = load_instance("problem_6_9")
+		tree.nodes_by_index[1].demand_source.mean = None
+		with self.assertRaises(ValueError):
+			gsm_tree.optimize_committed_service_times(tree)
+
+		tree = load_instance("problem_6_9")
+		tree.nodes_by_index[2].demand_source.standard_deviation = None
+		with self.assertRaises(ValueError):
+			gsm_tree.optimize_committed_service_times(tree)
